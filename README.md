@@ -9,7 +9,8 @@ The codebase is organized into separate modules, each exploring a different clas
 ## Repository Structure
 
 ├── models/
-│ ├── transformer/ # Vision Transformer with sparse local attention
+│ ├── transformer-cifar100/ # Vision Transformer with sparse local attention for CIFAR-100
+│ ├── transformer-imagenet/ # Sparse ViT for ImageNet classification + localization
 │ ├── world/ # World models / state-space approaches (in progress)
 │ └── diffusion/ # Diffusion and flow-based models (planned)
 └── README.md
@@ -26,7 +27,13 @@ Implementation of a Vision Transformer variant with **sparse local attention**.
 - Trained on CIFAR-100  
 - Includes model, training pipeline, and evaluation  
 
-See: `models/transformer/README.md`
+See: `models/transformer-cifar100/README.md`
+
+### Transformer ImageNet (Scaffolded)
+
+Sparse local attention model for ImageNet-style classification and bounding-box localization.
+
+See: `models/transformer-imagenet/README.md`
 
 ---
 
