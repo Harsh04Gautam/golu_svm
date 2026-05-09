@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from config import Config
+from metrics import generalized_box_iou_loss
 
 cfg = Config()
 
@@ -37,7 +38,7 @@ class GoluImageNet(nn.Module):
         x = self.layer_norm(x)
 
         class_logits = self.class_head(x[:, 0])
-        box = self.box_head(x[:, 1]).sigmoid()
+        box = self._ordered_box(self.box_head(x[:, 1]).sigmoid())
         output = {"class_logits": class_logits, "box": box}
 
         if targets is None:
@@ -45,9 +46,24 @@ class GoluImageNet(nn.Module):
 
         cls_loss = F.cross_entropy(class_logits, targets["label"])
         box_loss = F.smooth_l1_loss(box, targets["box"])
-        loss = cfg.cls_loss_weight * cls_loss + cfg.box_loss_weight * box_loss
-        losses = {"loss": loss, "cls_loss": cls_loss, "box_loss": box_loss}
+        giou_loss = generalized_box_iou_loss(box, targets["box"])
+        loss = (
+            cfg.cls_loss_weight * cls_loss
+            + cfg.box_loss_weight * box_loss
+            + cfg.giou_loss_weight * giou_loss
+        )
+        losses = {
+            "loss": loss,
+            "cls_loss": cls_loss,
+            "box_loss": box_loss,
+            "giou_loss": giou_loss,
+        }
         return output, losses
+
+    def _ordered_box(self, box):
+        top_left = torch.minimum(box[:, :2], box[:, 2:])
+        bottom_right = torch.maximum(box[:, :2], box[:, 2:])
+        return torch.cat([top_left, bottom_right], dim=-1)
 
     def print_model_info(self):
         print("\nMODEL INFO")

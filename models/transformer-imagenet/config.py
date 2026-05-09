@@ -9,15 +9,23 @@ class Config:
     image_size: int = 224
     num_classes: int = 1000
     num_workers: int = 4
+    class_map_path: Path = Path("imagenet-class-map.json")
+    crop_attempts: int = 10
+    min_crop_box_area: float = 0.25
 
     # Train config.
     epochs: int = 100
     batch: int = 32
+    grad_accum_steps: int = 1
+    max_grad_norm: float = 1.0
     learning_rate: float = 3e-4
     weight_decay: float = 0.05
     cls_loss_weight: float = 1.0
     box_loss_weight: float = 5.0
+    giou_loss_weight: float = 2.0
+    iou_threshold: float = 0.5
     save_model: bool = True
+    checkpoint_path: Path = Path("imagenet-model.pt")
 
     # Model config.
     patch_size: int = 16

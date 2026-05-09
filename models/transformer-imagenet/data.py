@@ -1,3 +1,4 @@
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -13,10 +14,20 @@ from config import Config
 class ImageNetLocalizationDataset(Dataset):
     """ImageNet LOC/CLS-LOC dataset returning image, class id, and normalized xyxy box."""
 
-    def __init__(self, root: str | Path, split: str, image_size: int, class_to_idx=None):
+    def __init__(
+        self,
+        root: str | Path,
+        split: str,
+        image_size: int,
+        class_to_idx=None,
+        crop_attempts: int = 10,
+        min_crop_box_area: float = 0.25,
+    ):
         self.root = Path(root)
         self.split = split
         self.image_size = image_size
+        self.crop_attempts = crop_attempts
+        self.min_crop_box_area = min_crop_box_area
         self.samples = self._find_samples()
         self.class_to_idx = class_to_idx or self._build_class_index()
 
@@ -38,11 +49,10 @@ class ImageNetLocalizationDataset(Dataset):
         image = Image.open(image_path).convert("RGB")
         boxes, class_names = self._read_annotation(annotation_path)
 
-        class_name = class_names[0]
-        box = boxes[0]
+        class_name, box = self._select_primary_object(boxes, class_names)
 
         if self.split == "train":
-            image, box = self._resize_square(image, box)
+            image, box = self._object_preserving_crop(image, box)
             if torch.rand(()) < 0.5:
                 image = TF.hflip(image)
                 box = torch.tensor(
@@ -111,6 +121,14 @@ class ImageNetLocalizationDataset(Dataset):
             raise ValueError(f"No objects found in {annotation_path}")
         return boxes, class_names
 
+    def _select_primary_object(self, boxes, class_names):
+        areas = torch.stack([
+            (box[2] - box[0]).clamp(min=0) * (box[3] - box[1]).clamp(min=0)
+            for box in boxes
+        ])
+        index = int(areas.argmax().item())
+        return class_names[index], boxes[index]
+
     def _resize_square(self, image, box):
         width, height = image.size
         image = TF.resize(image, [self.image_size, self.image_size])
@@ -121,8 +139,16 @@ class ImageNetLocalizationDataset(Dataset):
         )
         return image, box * scale
 
+    def _object_preserving_crop(self, image, box):
+        original_area = self._box_area(box)
+        for _ in range(self.crop_attempts):
+            cropped_image, cropped_box = self._random_resized_crop(image, box)
+            retained_area = self._box_area(cropped_box)
+            if retained_area >= original_area * self.min_crop_box_area:
+                return cropped_image, cropped_box
+        return self._resize_square(image, box)
+
     def _random_resized_crop(self, image, box):
-        width, height = image.size
         top, left, crop_h, crop_w = T.RandomResizedCrop.get_params(
             image, scale=(0.6, 1.0), ratio=(0.75, 1.33)
         )
@@ -140,6 +166,9 @@ class ImageNetLocalizationDataset(Dataset):
         )
         return image, shifted * scale
 
+    def _box_area(self, box):
+        return (box[2] - box[0]).clamp(min=0) * (box[3] - box[1]).clamp(min=0)
+
 
 def _collate(batch):
     images = torch.stack([item[0] for item in batch])
@@ -149,7 +178,14 @@ def _collate(batch):
 
 
 def build_dataloaders(cfg: Config):
-    train = ImageNetLocalizationDataset(cfg.data_root, "train", cfg.image_size)
+    train = ImageNetLocalizationDataset(
+        cfg.data_root,
+        "train",
+        cfg.image_size,
+        crop_attempts=cfg.crop_attempts,
+        min_crop_box_area=cfg.min_crop_box_area,
+    )
+    save_class_map(train.class_to_idx, cfg.class_map_path)
     val = ImageNetLocalizationDataset(
         cfg.data_root,
         "val",
@@ -174,3 +210,10 @@ def build_dataloaders(cfg: Config):
         collate_fn=_collate,
     )
     return train_loader, val_loader
+
+
+def save_class_map(class_to_idx, path):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as file:
+        json.dump(class_to_idx, file, indent=2, sort_keys=True)
