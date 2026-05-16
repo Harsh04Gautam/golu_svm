@@ -5,6 +5,7 @@ import torch
 from checkpoint import load_checkpoint, save_checkpoint
 from config import Config
 from data import build_dataloaders
+from experiment import AverageMeter, append_metrics, save_config_snapshot, seed_everything
 from metrics import localization_metrics
 from model import GoluImageNet
 
@@ -23,6 +24,8 @@ def move_targets(targets):
 
 
 def main():
+    seed_everything(cfg.seed)
+    save_config_snapshot(cfg)
     train_loader, val_loader = build_dataloaders(cfg)
     model = GoluImageNet().to(device)
     optimizer = torch.optim.AdamW(
@@ -50,7 +53,7 @@ def main():
 
     for epoch in range(start_epoch, cfg.epochs):
         model.train()
-        running_loss = 0.0
+        running_loss = AverageMeter()
         start_time = time.time()
         print(f"\nEPOCH {epoch + 1}:")
 
@@ -73,20 +76,27 @@ def main():
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
 
-            running_loss += losses["loss"].item()
+            running_loss.update(losses["loss"].item(), images.shape[0])
             if step % 10 == 9:
                 elapsed = f"{time.time() - start_time:.2f}s"
-                avg_loss = running_loss / 10
                 print(
                     f"step: {step + 1:<10} time: {elapsed:<10} "
-                    f"loss: \033[1;92m{avg_loss:<10.4f}\033[0m"
+                    f"loss: \033[1;92m{running_loss.avg:<10.4f}\033[0m"
                 )
-                running_loss = 0.0
+                running_loss.reset()
                 start_time = time.time()
 
         val_metrics = evaluate(model, val_loader)
         scheduler.step()
         print_validation(val_metrics)
+        append_metrics(
+            cfg.metrics_path,
+            {
+                "epoch": epoch + 1,
+                "lr": scheduler.get_last_lr()[0],
+                "val": val_metrics,
+            },
+        )
 
         if cfg.save_model and val_metrics["loss"] < best_val_loss:
             best_val_loss = val_metrics["loss"]

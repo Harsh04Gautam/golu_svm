@@ -7,3 +7,13 @@
 | Training Workflow Upgrade | Added checkpoint save/load utilities, training resume support, gradient accumulation, gradient clipping, and richer validation reporting. | 4 |
 | Data Pipeline Enhancement | Added class-map export for inference and object-preserving crop augmentation so supervised box targets remain usable during training. | 4 |
 | Inference and Verification Tools | Added single-image inference with bounding-box visualization, a no-dataset smoke test, checkpoint round-trip verification, and updated module documentation. | 4 |
+
+## Week 3
+
+| Task Name | Description | Hours |
+|---|---|---:|
+| Experiment Tracking Setup | Added reproducibility seeding, config snapshot export, JSONL metric history logging, and reusable experiment utilities for ImageNet training runs. | 4 |
+| Training Log Integration | Updated the training loop to use averaged loss meters and record per-epoch validation metrics, learning rate, and experiment metadata. | 4 |
+| Standalone Validation Workflow | Added a checkpoint validation entrypoint so saved ImageNet localization models can be evaluated without starting a full training run. | 4 |
+| Dataset Statistics Utility | Added an ImageNet LOC annotation analysis script to summarize image count, object count, class coverage, object density, and bounding-box area distribution. | 4 |
+| Documentation and Verification | Documented the new experiment-management workflow, validation command, and dataset statistics command, then ran syntax and smoke-test verification. | 4 |

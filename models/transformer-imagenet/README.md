@@ -13,6 +13,8 @@ The model has:
 - Checkpoint resume support with optimizer, scheduler, epoch, and metric state
 - Single-image inference with predicted box visualization
 - Object-preserving crop augmentation for supervised localization targets
+- Experiment config snapshots and JSONL validation metric history
+- Standalone checkpoint validation and dataset annotation statistics utilities
 
 ## Expected Data Layout
 
@@ -38,6 +40,7 @@ PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet
 Adjust `Config.data_root`, `batch`, `image_size`, and `kernel` in `config.py` before full training.
 
 Training writes `imagenet-class-map.json` so inference can convert predicted class ids back to ImageNet synset names.
+Training also writes the active config and validation metrics to the configured `runs/` path.
 
 ## Smoke Test
 
@@ -53,4 +56,20 @@ PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet
 ```bash
 cd /home/harsh/Dev/golu_svm
 PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet/inference.py path/to/image.JPEG --output prediction.jpg
+```
+
+## Validation
+
+Run validation from a saved checkpoint:
+
+```bash
+cd /home/harsh/Dev/golu_svm
+PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet/validate.py
+```
+
+Summarize ImageNet LOC annotations:
+
+```bash
+cd /home/harsh/Dev/golu_svm
+PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet/dataset_stats.py --split train
 ```

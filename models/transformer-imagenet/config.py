@@ -26,6 +26,10 @@ class Config:
     iou_threshold: float = 0.5
     save_model: bool = True
     checkpoint_path: Path = Path("imagenet-model.pt")
+    run_dir: Path = Path("runs/imagenet-sparse")
+    metrics_path: Path = Path("runs/imagenet-sparse/metrics.jsonl")
+    config_snapshot_path: Path = Path("runs/imagenet-sparse/config.json")
+    seed: int = 42
 
     # Model config.
     patch_size: int = 16
