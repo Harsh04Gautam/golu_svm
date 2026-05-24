@@ -45,6 +45,16 @@ def draw_prediction(image, box, label, score, output_path):
     image.save(output_path)
 
 
+def topk_predictions(probs, class_names, k):
+    scores, indices = probs.topk(k, dim=-1)
+    predictions = []
+    for score, index in zip(scores[0], indices[0]):
+        idx = int(index.item())
+        label = class_names.get(idx, str(idx)) if class_names else str(idx)
+        predictions.append({"label": label, "score": float(score.item()), "index": idx})
+    return predictions
+
+
 @torch.no_grad()
 def main():
     parser = argparse.ArgumentParser(description="Run ImageNet localization inference.")
@@ -52,6 +62,7 @@ def main():
     parser.add_argument("--checkpoint", type=Path, default=cfg.checkpoint_path)
     parser.add_argument("--class-map", type=Path, default=cfg.class_map_path)
     parser.add_argument("--output", type=Path, default=Path("prediction.jpg"))
+    parser.add_argument("--top-k", type=int, default=5)
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -63,17 +74,20 @@ def main():
     tensor = preprocess(image).to(device)
     outputs, _ = model(tensor)
     probs = outputs["class_logits"].softmax(dim=-1)
-    score, label_idx = probs.max(dim=-1)
 
     class_names = load_class_names(args.class_map)
-    idx = int(label_idx.item())
-    label = class_names.get(idx, str(idx)) if class_names else str(idx)
+    predictions = topk_predictions(probs, class_names, args.top_k)
+    label = predictions[0]["label"]
+    score = predictions[0]["score"]
     box = outputs["box"][0].detach().cpu().tolist()
 
-    draw_prediction(image, box, label, float(score.item()), args.output)
+    draw_prediction(image, box, label, score, args.output)
     print(f"label: {label}")
-    print(f"score: {score.item():.4f}")
+    print(f"score: {score:.4f}")
     print(f"box: {[round(value, 4) for value in box]}")
+    print("top_predictions:")
+    for prediction in predictions:
+        print(f"  {prediction['label']}: {prediction['score']:.4f}")
     print(f"output: {args.output}")
 
 

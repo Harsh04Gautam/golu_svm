@@ -32,6 +32,9 @@ def main():
     print(f"mean_iou: {metrics['mean_iou'].item():.4f}")
     print(f"mean_giou: {metrics['mean_giou'].item():.4f}")
     print(f"center_error: {metrics['center_error'].item():.4f}")
+    print(f"loc_at_0.3: {metrics['loc_at_0.3'].item():.4f}")
+    print(f"loc_at_0.5: {metrics['loc_at_0.5'].item():.4f}")
+    print(f"loc_at_0.75: {metrics['loc_at_0.75'].item():.4f}")
 
 
 if __name__ == "__main__":

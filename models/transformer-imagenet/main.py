@@ -138,6 +138,9 @@ def evaluate(model, loader):
         "mean_giou": 0.0,
         "center_error": 0.0,
         "loc_at_iou": 0.0,
+        "loc_at_0.3": 0.0,
+        "loc_at_0.5": 0.0,
+        "loc_at_0.75": 0.0,
     }
     total_batches = 0
     total_examples = 0
@@ -170,6 +173,9 @@ def evaluate(model, loader):
         "mean_giou": totals["mean_giou"] / examples,
         "center_error": totals["center_error"] / examples,
         "loc_at_iou": totals["loc_at_iou"] / examples,
+        "loc_at_0.3": totals["loc_at_0.3"] / examples,
+        "loc_at_0.5": totals["loc_at_0.5"] / examples,
+        "loc_at_0.75": totals["loc_at_0.75"] / examples,
     }
 
 

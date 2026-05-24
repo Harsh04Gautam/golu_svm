@@ -29,6 +29,8 @@ class Config:
     run_dir: Path = Path("runs/imagenet-sparse")
     metrics_path: Path = Path("runs/imagenet-sparse/metrics.jsonl")
     config_snapshot_path: Path = Path("runs/imagenet-sparse/config.json")
+    prediction_export_path: Path = Path("runs/imagenet-sparse/val-predictions.jsonl")
+    error_report_path: Path = Path("runs/imagenet-sparse/error-report.json")
     seed: int = 42
 
     # Model config.

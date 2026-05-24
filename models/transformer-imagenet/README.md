@@ -15,6 +15,7 @@ The model has:
 - Object-preserving crop augmentation for supervised localization targets
 - Experiment config snapshots and JSONL validation metric history
 - Standalone checkpoint validation and dataset annotation statistics utilities
+- Validation prediction export and error-analysis reports
 
 ## Expected Data Layout
 
@@ -72,4 +73,14 @@ Summarize ImageNet LOC annotations:
 ```bash
 cd /home/harsh/Dev/golu_svm
 PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet/dataset_stats.py --split train
+```
+
+## Error Analysis
+
+Export validation predictions and generate a compact error report:
+
+```bash
+cd /home/harsh/Dev/golu_svm
+PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet/export_predictions.py
+PYTHONPATH=models/transformer-imagenet uv run python models/transformer-imagenet/error_analysis.py
 ```

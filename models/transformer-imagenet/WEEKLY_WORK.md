@@ -17,3 +17,13 @@
 | Standalone Validation Workflow | Added a checkpoint validation entrypoint so saved ImageNet localization models can be evaluated without starting a full training run. | 4 |
 | Dataset Statistics Utility | Added an ImageNet LOC annotation analysis script to summarize image count, object count, class coverage, object density, and bounding-box area distribution. | 4 |
 | Documentation and Verification | Documented the new experiment-management workflow, validation command, and dataset statistics command, then ran syntax and smoke-test verification. | 4 |
+
+## Week 4
+
+| Task Name | Description | Hours |
+|---|---|---:|
+| Prediction Export Workflow | Added a validation prediction exporter that writes class predictions, confidence scores, predicted boxes, target boxes, and IoU values to JSONL for later analysis. | 4 |
+| Error Analysis Reporting | Added an error-analysis utility that summarizes classification accuracy, localization accuracy, combined accuracy, mean IoU, top class confusions, low-IoU samples, and high-confidence mistakes. | 4 |
+| Inference Output Enhancement | Updated single-image inference to report top-k class predictions while still drawing the highest-confidence predicted bounding box. | 4 |
+| Metric Coverage Expansion | Added box conversion helpers and localization accuracy at multiple IoU thresholds to better characterize model quality beyond a single validation score. | 4 |
+| Documentation and Verification | Documented prediction export and error-analysis commands, updated smoke-test output, and verified the expanded evaluation tooling with syntax checks and smoke testing. | 4 |
